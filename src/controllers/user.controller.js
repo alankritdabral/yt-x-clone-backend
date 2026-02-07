@@ -148,8 +148,8 @@ const loginUser = asyncHandler(async (req, res) => {
 
   const options = {
     httpOnly: true,
-    secure: isProduction,          // true in production
-    sameSite: isProduction ? "None" : "lax",
+    secure: true,          // true in production
+    sameSite: true ? "None" : "lax",
   };
 
   return res
