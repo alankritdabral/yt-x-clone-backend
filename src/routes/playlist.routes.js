@@ -13,26 +13,35 @@ import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
+/* All playlist routes require login */
 router.use(verifyJWT);
 
-router.route("/user/:userId").get(getUserPlaylists);
+/* ---------------------------
+   USER PLAYLISTS
+---------------------------- */
+/* MUST come before :playlistId */
+router.get("/user/:userId", getUserPlaylists);
 
-/* Create playlist */
-router.route("/").post(createPlaylist);
+/* ---------------------------
+   CREATE PLAYLIST
+---------------------------- */
+router.post("/", createPlaylist);
 
-/* Playlist CRUD */
+/* ---------------------------
+   PLAYLIST CRUD
+---------------------------- */
 router
   .route("/:playlistId")
   .get(getPlaylistById)
   .patch(updatePlaylist)
   .delete(deletePlaylist);
 
-/* Playlist videos */
+/* ---------------------------
+   PLAYLIST VIDEOS
+---------------------------- */
 router
   .route("/:playlistId/videos/:videoId")
   .patch(addVideoToPlaylist)
   .delete(removeVideoFromPlaylist);
-
-/* User playlists */
 
 export default router;
