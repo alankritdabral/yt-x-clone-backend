@@ -6,7 +6,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 
-// const isInProduction = process.env.NODE_ENV === "production";
+const isInProduction = process.env.NODE_ENV === "production";
 
 const generateAccessAndRefereshTokens = async (userId) => {
   try {
@@ -149,8 +149,8 @@ const loginUser = asyncHandler(async (req, res) => {
 
   const options = {
     httpOnly: true,
-    secure: true,
-    sameSite: "None",
+    secure: isInProduction ? true : false,
+    sameSite: isInProduction ? "None" : "Lax",
   };
 
   console.log("cookiesstored");
@@ -187,8 +187,8 @@ const logoutUser = asyncHandler(async (req, res) => {
 
   const options = {
     httpOnly: true,
-    secure: true,
-    sameSite: "None",
+    secure: isInProduction ? true : false,
+    sameSite: isInProduction ? "None" : "Lax",
   };
 
   return res
@@ -224,8 +224,8 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
     const options = {
       httpOnly: true,
-      secure: true,
-      sameSite: "None",
+      secure: isInProduction ? true : false,
+      sameSite: isInProduction ? "None" : "Lax",
     };
 
     const { accessToken, newRefreshToken } =
