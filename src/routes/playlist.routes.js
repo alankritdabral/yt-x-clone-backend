@@ -15,6 +15,8 @@ const router = Router();
 
 router.use(verifyJWT);
 
+router.route("/user/:userId").get(getUserPlaylists);
+
 /* Create playlist */
 router.route("/").post(createPlaylist);
 
@@ -32,6 +34,5 @@ router
   .delete(removeVideoFromPlaylist);
 
 /* User playlists */
-router.route("/user/:userId").get(getUserPlaylists);
 
 export default router;
