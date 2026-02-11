@@ -7,13 +7,12 @@ import {
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router();
-router.use(verifyJWT);
 
-router
-  .route("/c/:channelId")
-  .get(getUserChannelSubscribers)
-  .post(toggleSubscription);
+/* ---------- Public ---------- */
+router.get("/c/:channelId", getUserChannelSubscribers);
 
-router.route("/u/:subscriberId").get(getSubscribedChannels);
+/* ---------- Protected ---------- */
+router.post("/c/:channelId", verifyJWT, toggleSubscription);
+router.get("/u/:subscriberId", verifyJWT, getSubscribedChannels);
 
 export default router;

@@ -4,7 +4,6 @@ import { ApiError } from "../utils/ApiErrors.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/AsyncHandler.js";
 import { Video } from "../models/video.models.js";
-import { Like } from "../models/like.models.js";
 
 /* ===========================
    Utils
@@ -44,6 +43,8 @@ const getVideoComments = asyncHandler(async (req, res) => {
   const { videoId: videoIdParam } = req.params;
   const videoId = await getValidVideoId(videoIdParam);
 
+  const userId = req.user?._id || null;
+
   const page = Math.max(Number(req.query.page) || 1, 1);
   const limit = Math.min(Number(req.query.limit) || 10, 50);
   const skip = (page - 1) * limit;
@@ -77,28 +78,65 @@ const getVideoComments = asyncHandler(async (req, res) => {
           },
           { $addFields: { owner: { $first: "$owner" } } },
 
-          /* -------- LIKES -------- */
+          /* -------- LIKE COUNT -------- */
           {
             $lookup: {
               from: "likes",
-              localField: "_id",
-              foreignField: "comment",
-              as: "likes",
+              let: { commentId: "$_id" },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: { $eq: ["$comment", "$$commentId"] },
+                  },
+                },
+                { $count: "count" },
+              ],
+              as: "likesCountArr",
             },
           },
-
           {
             $addFields: {
-              likesCount: { $size: "$likes" },
-              isLiked: {
-                $in: [req.user._id, "$likes.likedBy"],
+              likesCount: {
+                $ifNull: [{ $first: "$likesCountArr.count" }, 0],
               },
             },
           },
 
+          /* -------- USER LIKE -------- */
+          ...(userId
+            ? [
+                {
+                  $lookup: {
+                    from: "likes",
+                    let: { commentId: "$_id" },
+                    pipeline: [
+                      {
+                        $match: {
+                          $expr: {
+                            $and: [
+                              { $eq: ["$comment", "$$commentId"] },
+                              { $eq: ["$likedBy", userId] },
+                            ],
+                          },
+                        },
+                      },
+                      { $limit: 1 },
+                    ],
+                    as: "userLike",
+                  },
+                },
+                {
+                  $addFields: {
+                    isLiked: { $gt: [{ $size: "$userLike" }, 0] },
+                  },
+                },
+              ]
+            : [{ $addFields: { isLiked: false } }]),
+
           {
             $project: {
-              likes: 0,
+              likesCountArr: 0,
+              userLike: 0,
             },
           },
         ],
@@ -163,7 +201,6 @@ const addComment = asyncHandler(async (req, res) => {
     },
     { $addFields: { owner: { $first: "$owner" } } },
 
-    /* likes defaults */
     {
       $addFields: {
         likesCount: 0,
