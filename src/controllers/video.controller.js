@@ -11,7 +11,7 @@ import { View } from "../models/view.models.js";
    GET ALL VIDEOS (PUBLIC)
 ======================= */
 const getAllVideos = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 10, query, sortBy, sortType } = req.query;
+  const { page = 1, limit = 50, query, sortBy, sortType } = req.query;
 
   const pageNum = Math.max(Number(page), 1);
   const limitNum = Math.min(Number(limit), 50);
