@@ -228,17 +228,22 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       sameSite: isInProduction ? "None" : "Lax",
     };
 
-    const { accessToken, newRefreshToken } =
-      await generateAccessAndRefereshTokens(user._id);
+    console.log("old refreshtoken", user.refreshToken);
+
+    const { accessToken, refreshToken } = await generateAccessAndRefereshTokens(
+      user._id
+    );
+
+    console.log("new refreshtoken", refreshToken);
 
     return res
       .status(200)
       .cookie("accessToken", accessToken, options)
-      .cookie("refreshToken", newRefreshToken, options)
+      .cookie("refreshToken", refreshToken, options)
       .json(
         new ApiResponse(
           200,
-          { accessToken, refreshToken: newRefreshToken },
+          { accessToken, refreshToken },
           "Access token refreshed"
         )
       );

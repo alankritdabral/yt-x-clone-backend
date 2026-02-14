@@ -126,4 +126,31 @@ const deleteTweet = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, null, "Tweet deleted successfully"));
 });
 
-export { createTweet, getUserTweets, updateTweet, deleteTweet };
+/* ===========================
+   Get Feed Tweets
+=========================== */
+const getFeedTweets = asyncHandler(async (req, res) => {
+  const page = Math.max(Number(req.query.page) || 1, 1);
+  const limit = Math.min(Number(req.query.limit) || 10, 50);
+  const skip = (page - 1) * limit;
+
+  const tweets = await Tweet.find({})
+    .populate("owner", "username avatar")
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit);
+
+  const total = await Tweet.countDocuments();
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { tweets, total, page, limit },
+        "Feed tweets fetched"
+      )
+    );
+});
+
+export { createTweet, getUserTweets, updateTweet, deleteTweet, getFeedTweets };
