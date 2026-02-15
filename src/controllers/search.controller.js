@@ -12,38 +12,50 @@ export const search = asyncHandler(async (req, res) => {
     return res.json(new ApiResponse(200, [], "Empty query"));
   }
 
-  const regex = new RegExp(q, "i"); // case-insensitive
+  const regex = new RegExp(q, "i");
 
   let results = [];
 
+  /* ---------- Videos ---------- */
   if (type === "video" || type === "all") {
     const videos = await Video.find({
       $or: [{ title: regex }, { description: regex }],
-    }).limit(20);
+    })
+      .populate("owner", "username avatar") // ✅ add this
+      .limit(20);
 
     results = [...results, ...videos];
   }
 
+  /* ---------- Users ---------- */
   if (type === "user" || type === "all") {
     const users = await User.find({
       username: regex,
-    }).limit(10);
+    })
+      .select("username avatar") // only needed fields
+      .limit(10);
 
     results = [...results, ...users];
   }
 
+  /* ---------- Tweets ---------- */
   if (type === "tweet" || type === "all") {
     const tweets = await Tweet.find({
       content: regex,
-    }).limit(10);
+    })
+      .populate("owner", "username avatar")
+      .limit(10);
 
     results = [...results, ...tweets];
   }
 
+  /* ---------- Playlists ---------- */
   if (type === "playlist" || type === "all") {
     const playlists = await Playlist.find({
       name: regex,
-    }).limit(10);
+    })
+      .populate("owner", "username avatar")
+      .limit(10);
 
     results = [...results, ...playlists];
   }
